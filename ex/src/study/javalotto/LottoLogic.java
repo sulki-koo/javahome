@@ -26,6 +26,7 @@ public class LottoLogic implements ILottoGame {
 	public void gamePlay() {
 		inputBuyinfo();
 		drawAutoUser();
+		checkRound();
 		scan.close();
 	}
 
@@ -44,9 +45,8 @@ public class LottoLogic implements ILottoGame {
 				i++;
 			}
 		}
-
-		int j = 0;
 		int countNum = lottoBuyInfo.getCount();
+		int j = 0;
 		while (j < 1) {
 			System.out.println("자동으로 번호를 선택 할 수량을 입력하세요!");
 			int iAuto = scan.nextInt();
@@ -66,7 +66,7 @@ public class LottoLogic implements ILottoGame {
 
 	// 로또번호 입력 받기
 	void apply() {
-		System.out.println(lottoBuyInfo.getAutoApplyNum());
+		lottoBuyInfo.getAutoApplyNum();
 		int countNum = lottoBuyInfo.getCount();
 		int autoNum = lottoBuyInfo.getAutoApplyNum();
 
@@ -74,11 +74,17 @@ public class LottoLogic implements ILottoGame {
 			for (int i = 0; i < countNum - autoNum; i++) {
 				System.out.println((i + 1) + "번째 로또번호를 6개를 입력해 주세요!");
 				for (int j = 0; j < applyNamber0Leng; j++) {
-					applyNamber[i][j] = scan.nextInt();
+					int num = scan.nextInt();
+					if (num > 45) {
+						j--;
+						System.out.println("1~45의 숫자를 입력해주세요.");
+						continue;
+					}
+					applyNamber[i][j] = num;
 				}
 			}
 		} catch (InputMismatchException error) {
-			System.out.println("Error:1~45의 '숫자'를 입력해주세요.");
+			System.out.println("Error:1~45의 숫자를 입력해주세요.");
 			apply();
 		}
 	} // apply
@@ -90,64 +96,67 @@ public class LottoLogic implements ILottoGame {
 		for (int i = (countNum - autoNum); i < countNum; i++) {
 			for (int j = 0; j < applyNamber0Leng; j++) {
 				int drawAutoNum = (int) (Math.random() * 45) + 1;
-				applyNamber[i][j] = drawAutoNum;
+				if (!checkAuto(drawAutoNum)) {
+					applyNamber[i][j] = drawAutoNum;
+				} else {
+					j--;
+					//System.out.println("오토 다시");
+				}
 			}
 		}
-		repeatCheck();
-	}
+	} // drawAutoUser
 
-	// 검사 응모 횟수만큼 돌리기
-	void repeatCheck() {
+	// 추첨값 중복 체크
+	boolean checkAuto(int drawAutoNum) {
 		int countNum = lottoBuyInfo.getCount();
-		int errorNum = 0;
+		int autoNum = lottoBuyInfo.getAutoApplyNum();
+		for (int i = (countNum - autoNum); i < countNum; i++) {
+			for (int j = 0; j < applyNamber0Leng; j++) {
+				if (applyNamber[i][j] == drawAutoNum) {
+					//System.out.print(applyNamber[i][j] + "중복"); // 확인용
+					return true;
+				}
+			}
+		}
+		return false;
 
-		for (int round = 0; round < countNum; round++) {
-			System.out.println(round+"검사");
+	} // drawCheck
+
+	// 수동구매 로또 번호 검사
+	boolean inputDupe(int round) {
+		int countNum = lottoBuyInfo.getCount();
+		int autoNum = lottoBuyInfo.getAutoApplyNum();
+		for (int i = 0; i < countNum - autoNum; i++) {
+			for (int j = i + 1; j < applyNamber0Leng; j++) {
+				if (applyNamber[round][i] == applyNamber[round][j]) {
+					// System.out.print(applyNamber[round][i] + "와 중복"); //확인용
+					// System.out.print(applyNamber[round][j] + "\n");
+					return true;
+				}
+			}
+		}
+		return false;
+	} // checkRound
+
+	// 중복 체크 수동 구매 횟수만큼 반복 검사
+	void checkRound() {
+		int countNum = lottoBuyInfo.getCount();
+		int autoNum = lottoBuyInfo.getAutoApplyNum();
+		int round = 0;
+		for (; round < (countNum - autoNum); round++) {
 			inputDupe(round);
-			errorNum += errorArr[round];
-			System.out.println(errorNum + "오류 합");
-		}
-
-		if (errorNum != 0) {
-			System.out.println("바른 값을 입력해주세요!");
-		} else {
-			System.out.println("응모완료!");
-			printApplyCheck();
-		}
-
-	} // repeatCheck
-
-	// 입력받은 로또 번호 검사
-	void inputDupe(int round) {
-		int countNum = lottoBuyInfo.getCount();
-
-		int k = 0;
-		int maxErr = 0;
-		// 중복 & 45이하 값 체크
-		for (int i = 0; i < countNum; i++) {
-			System.out.println("시작");
-			if (applyNamber[round][i] > 46) {
-				System.out.println(applyNamber[round][i] + "초과");
-				maxErr++;
-			} else {
-				for (int j = i + 1; j < applyNamberLeng; j++) {
-					if (applyNamber[round][i] == applyNamber[round][j]) {
-						System.out.println(applyNamber[round][j] + "중복");
-						k++;
-					}else {
-					}
-				}System.out.println("이상없음");
+			if (inputDupe(round)) {
+				round--;
+				System.out.println("중복 값을 입력하였습니다. 다시 입력해주세요.");
+				apply();
 			}
-			errorArr[i] = k + maxErr;
-			System.out.print(errorArr[i] + "저장된 오류   ");
 		}
-
+		printApplyCheck();
 	} // inputDupe
 
 	// 입력한 번호 출력 and 조건별 멘트 출력
 	void printApplyCheck() {
 		int countNum = lottoBuyInfo.getCount();
-
 		// 응모값 출력
 		for (int i = 0; i < countNum; i++) {
 			System.out.print("( ");
@@ -212,7 +221,7 @@ public class LottoLogic implements ILottoGame {
 					dupe++;
 				}
 			}
-		} // System.out.println(dupe+"개 중복");
+		}
 		if (dupe != 0) {
 			drawLotto(lottoBalls);
 		} else {
@@ -227,33 +236,36 @@ public class LottoLogic implements ILottoGame {
 			System.out.print(drawNamber[i] + " ");
 		}
 		System.out.println("(보너스번호:" + drawNamber[6] + ")");
-		matching();
+		matchingRound();
 	} // printDraw
 
-	// 당첨 확인
-	void matching() {
+	// 구매횟수만큼 당첨 확인 반복
+	void matchingRound() {
 		int countNum = lottoBuyInfo.getCount();
+		for (int round = 0; round < countNum; round++) {
+			System.out.print((round + 1) + "번째 줄:");
+			matching(round);
+		}
+	}
 
+	// 당첨 확인
+	void matching(int round) {
+		int countNum = lottoBuyInfo.getCount();
 		int count = 0;
-
 		// 로또 번호 확인
 		for (int i = 0; i < countNum; i++) { // 구매횟수만큼
-			int n = 0;
-			for (int j = 0; j < applyNamberLeng; j++) { // index 0~5
-				if (applyNamber[i][n] == drawNamber[j]) {
+			for (int j = 0; j < applyNamber0Leng; j++) { // index 0~5
+				if (applyNamber[round][i] == drawNamber[j]) {
 					count++;
 				}
-				n++;
 			}
 		}
 
 		// 보너스 번호 확인
 		int bonus = 0;
-		for (int i = 0; i < countNum; i++) {
-			for (int j = 0; j < applyNamberLeng; j++) {
-				if (drawNamber[6] == applyNamber[i][j])
-					bonus += 1;
-			}
+		for (int j = 0; j < applyNamber0Leng; j++) {
+			if (drawNamber[6] == applyNamber[round][j])
+				bonus += 1;
 		}
 		printLotto(count, bonus);
 
@@ -262,7 +274,7 @@ public class LottoLogic implements ILottoGame {
 	// 로또 당첨여부 출력
 	void printLotto(int count, int bonus) {
 
-		System.out.println(count + "개 일치");
+		System.out.print(count + "개 일치 ");
 
 		if (count == 6) {
 			System.out.println("축! 1등입니다!");
