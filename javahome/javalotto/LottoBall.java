@@ -1,4 +1,4 @@
-package study.javalotto;
+package javalotto;
 
 //데이터 클래스
 // 사용하지 않더라도 JavaBeans 형태로 만들어놓는 것이 기본

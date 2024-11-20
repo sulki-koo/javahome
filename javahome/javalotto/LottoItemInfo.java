@@ -1,4 +1,4 @@
-package study.javalotto;
+package javalotto;
 
 // 로또 아이템 정보
 public class LottoItemInfo {

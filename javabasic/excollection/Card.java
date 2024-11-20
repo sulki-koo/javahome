@@ -1,4 +1,4 @@
-package javabasic.excollection;
+package excollection;
 
 public class Card {
 

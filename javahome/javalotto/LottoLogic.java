@@ -1,4 +1,4 @@
-package study.javalotto;
+package javalotto;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;

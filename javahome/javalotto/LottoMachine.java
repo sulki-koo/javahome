@@ -1,4 +1,4 @@
-package study.javalotto;
+package javalotto;
 
 // 로또 기계
 public class LottoMachine {

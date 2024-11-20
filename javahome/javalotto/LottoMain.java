@@ -1,4 +1,4 @@
-package study.javalotto;
+package javalotto;
 
 import java.util.Scanner;
 
