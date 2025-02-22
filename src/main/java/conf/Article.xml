@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Article">
+
+  <!-- ResultMap for Article -->
+  <resultMap id="articleResultMap" type="Article">
+    <id property="aid" column="AID"/>
+    <result property="asubject" column="ASUBJECT"/>
+    <result property="acontent" column="ACONTENT"/>
+    <result property="avcnt" column="AVCNT"/>
+    <result property="aregdate" column="AREGDATE"/>
+    <result property="adelyn" column="ADELYN"/>
+    <result property="aafcnt" column="AAFCNT"/>
+    <result property="arcnt" column="ARCNT"/>
+    <result property="bid" column="BID"/>
+    <result property="mid" column="MID"/>
+    <result property="bname" column="BNAME"/>
+  </resultMap>
+
+  <!-- SELECT_ARTICLE: 모든 기사 조회 -->
+ <select id="selectArticle" resultMap="articleResultMap">
+    SELECT A.AID AS AID, 
+           A.ASUBJECT AS ASUBJECT, 
+           A.ACONTENT AS ACONTENT, 
+           A.AVCNT AS AVCNT, 
+           A.AREGDATE AS AREGDATE, 
+           A.MID AS MID, 
+           A.ARCNT AS ARCNT, 
+           A.AAFCNT AS AAFCNT, 
+           A.ADELYN AS ADELYN, 
+           B.BID AS BID, 
+           B.BNAME AS BNAME
+    FROM ARTICLE A, BOARD B
+    <where>
+    	A.BID = B.BID 
+      	AND A.ADELYN = 'N'
+    	<if test="searchBoard != null and searchBoard != ''">
+    		AND B.BID = #{searchBoard}
+    	</if>
+    	<if test="searchClass != null">
+    		<choose>
+    			<when test="searchClass == 'asubject'">
+    				AND A.ASUBJECT LIKE CONCAT('%', #{searchVal}, '%')
+    			</when>
+    			<when test="searchClass == 'acontent'">
+    				AND A.ACONTENT LIKE CONCAT('%', #{searchVal}, '%')
+    			</when>
+    			<when test="searchClass == 'mid'">
+    				AND A.MID LIKE CONCAT('%', #{searchVal}, '%')
+    			</when>
+    			<otherwise>
+    				AND (A.ASUBJECT LIKE CONCAT('%', #{searchVal}, '%')
+						 OR A.ACONTENT LIKE CONCAT('%', #{searchVal}, '%')
+						 OR A.MID LIKE CONCAT('%', #{searchVal}, '%'))
+    			</otherwise>
+    		</choose>
+    	</if>
+    </where> 
+  </select>
+
+  <!-- GET_ARTICLE: 특정 기사 조회 (AID 기준) -->
+  <select id="getArticle" parameterType="int" resultMap="articleResultMap">
+    SELECT A.AID AS AID, 
+           A.ASUBJECT AS ASUBJECT, 
+           A.ACONTENT AS ACONTENT, 
+           A.AVCNT AS AVCNT, 
+           A.AREGDATE AS AREGDATE, 
+           A.MID AS MID, 
+           A.ARCNT AS ARCNT, 
+           A.AAFCNT AS AAFCNT, 
+           A.ADELYN AS ADELYN, 
+           B.BID AS BID, 
+           B.BNAME AS BNAME
+    FROM ARTICLE A, BOARD B
+    WHERE A.BID = B.BID 
+      AND A.ADELYN = 'N' 
+      AND A.AID = #{aid}
+  </select>
+
+  <!-- INSERT_ARTICLE: 새로운 기사 추가 -->
+  <insert id="insertArticle" parameterType="Article">
+    INSERT INTO ARTICLE 
+    (AID, ASUBJECT, ACONTENT, AVCNT, AREGDATE, ADELYN, AAFCNT, ARCNT, BID, MID)
+    VALUES (ARTICLE_SEQ.NEXTVAL, 
+            #{asubject}, 
+            #{acontent}, 
+            0, 
+            SYSDATE, 
+            'N', 
+            0, 
+            0, 
+            #{bid}, 
+            #{mid})
+  </insert>
+
+  <!-- UPDATE_ARTICLE: 기사 수정 -->
+  <update id="updateArticle" parameterType="Article">
+    UPDATE ARTICLE
+    SET ASUBJECT = #{asubject}, 
+        ACONTENT = #{acontent}
+    WHERE AID = #{aid}
+  </update>
+
+  <!-- DELETE_ARTICLE: 기사 삭제 (ADELYN='Y'로 설정) -->
+  <update id="deleteArticle" parameterType="int">
+    UPDATE ARTICLE
+    SET ADELYN = 'Y'
+    WHERE AID = #{aid}
+  </update>
+
+  <!-- INCREASE_AVCNT: 조회수 증가 -->
+  <update id="increaseAvcnt" parameterType="int">
+    UPDATE ARTICLE
+    SET AVCNT = AVCNT + 1
+    WHERE AID = #{aid}
+  </update>
+
+</mapper>
